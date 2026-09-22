@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Imposter</title>
+<meta name="description" content="A free pass-and-play Imposter / Spyfall-style party game for your phone.">
+<meta name="theme-color" content="#0f1115">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Imposter">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME -->
+  <section class="screen active" id="screen-home">
+    <div class="home-wrap">
+      <h1 class="logo">IMPOSTER<span class="dot">.</span></h1>
+      <p class="tagline">Pass the phone. Find the imposter.</p>
+      <div class="scoreboard" id="scoreboard"></div>
+      <div class="home-actions">
+        <button class="btn btn-primary btn-lg" id="btn-play">Play</button>
+        <button class="btn btn-ghost" id="btn-settings">Settings</button>
+        <button class="btn btn-ghost" id="btn-howto">How to Play</button>
+      </div>
+      <button class="btn btn-text" id="btn-reset-score">Reset scoreboard</button>
+    </div>
+  </section>
+
+  <!-- HOW TO PLAY -->
+  <section class="screen" id="screen-howto">
+    <div class="panel">
+      <button class="btn-back" data-back="screen-home">&larr; Back</button>
+      <h2>How to Play</h2>
+      <ol class="howto-list">
+        <li>Set the number of players and imposters, then hit Start.</li>
+        <li>Pass the phone around &mdash; each player privately taps to reveal their role. Everyone gets the secret word except the imposter(s).</li>
+        <li>Set the phone down. Take turns describing the word without saying it &mdash; the imposter has to bluff.</li>
+        <li>When time's up (or anyone calls it), vote for who you think the imposter is.</li>
+        <li>If the imposter is caught, they get one last chance to guess the word and steal the win.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section class="screen" id="screen-setup">
+    <div class="panel">
+      <button class="btn-back" data-back="screen-home">&larr; Back</button>
+      <h2>New Game</h2>
+
+      <div class="field">
+        <label>Players</label>
+        <div class="stepper">
+          <button class="step-btn" id="players-minus">&minus;</button>
+          <span class="step-val" id="players-val">4</span>
+          <button class="step-btn" id="players-plus">&plus;</button>
+        </div>
+      </div>
+
+      <div class="field" id="player-names-field">
+        <label>Player names (optional)</label>
+        <div id="player-names-list" class="player-names-list"></div>
+      </div>
+
+      <div class="field">
+        <label>Imposters</label>
+        <div class="stepper">
+          <button class="step-btn" id="imposters-minus">&minus;</button>
+          <span class="step-val" id="imposters-val">1</span>
+          <button class="step-btn" id="imposters-plus">&plus;</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Discussion timer</label>
+        <div class="stepper">
+          <button class="step-btn" id="timer-minus">&minus;</button>
+          <span class="step-val" id="timer-val">3 min</span>
+          <button class="step-btn" id="timer-plus">&plus;</button>
+        </div>
+      </div>
+
+      <div class="field toggle-field">
+        <label for="toggle-hint">Imposter sees the category</label>
+        <input type="checkbox" id="toggle-hint" checked>
+      </div>
+
+      <div class="field toggle-field">
+        <label for="toggle-steal">Imposter can steal by guessing the word</label>
+        <input type="checkbox" id="toggle-steal" checked>
+      </div>
+
+      <div class="field">
+        <label>Categories</label>
+        <div class="chip-row" id="category-chips"></div>
+        <button class="btn btn-text" id="btn-manage-words">Manage custom words</button>
+      </div>
+
+      <button class="btn btn-primary btn-lg" id="btn-start-game">Start Game</button>
+    </div>
+  </section>
+
+  <!-- CUSTOM WORDS -->
+  <section class="screen" id="screen-custom">
+    <div class="panel">
+      <button class="btn-back" data-back="screen-setup">&larr; Back</button>
+      <h2>Custom Words</h2>
+      <p class="hint-text">Add your own category. One word per line.</p>
+      <div class="field">
+        <label>Category name</label>
+        <input type="text" id="custom-cat-name" placeholder="e.g. Inside Jokes" maxlength="24">
+      </div>
+      <div class="field">
+        <label>Words</label>
+        <textarea id="custom-cat-words" rows="8" placeholder="One word per line&#10;Needs at least 6"></textarea>
+      </div>
+      <button class="btn btn-primary" id="btn-save-custom">Save Category</button>
+      <div id="custom-cat-list" class="custom-cat-list"></div>
+    </div>
+  </section>
+
+  <!-- PASS SCREEN (shared for reveal + voting) -->
+  <section class="screen" id="screen-pass">
+    <div class="pass-wrap">
+      <p class="pass-eyebrow" id="pass-eyebrow">Pass the phone to</p>
+      <h2 class="pass-name" id="pass-name">Player 1</h2>
+      <p class="pass-sub" id="pass-sub">Only they should be looking at the screen.</p>
+      <button class="btn btn-primary btn-lg btn-reveal" id="btn-reveal">Tap to Reveal</button>
+    </div>
+  </section>
+
+  <!-- ROLE REVEAL -->
+  <section class="screen" id="screen-role">
+    <div class="role-wrap" id="role-wrap">
+      <p class="role-eyebrow" id="role-category">Category</p>
+      <h1 class="role-word" id="role-word">WORD</h1>
+      <button class="btn btn-primary btn-lg" id="btn-hide-role">Got it &mdash; Hide</button>
+    </div>
+  </section>
+
+  <!-- DISCUSSION / TIMER -->
+  <section class="screen" id="screen-discuss">
+    <div class="panel center-panel">
+      <h2>Discuss</h2>
+      <p class="hint-text">Take turns describing the word without saying it. Try to spot who's bluffing.</p>
+      <div class="timer-display" id="timer-display">3:00</div>
+      <div class="timer-controls" id="timer-controls">
+        <button class="btn btn-ghost" id="btn-timer-pause">Pause</button>
+      </div>
+      <button class="btn btn-primary btn-lg" id="btn-start-vote">Start Voting</button>
+    </div>
+  </section>
+
+  <!-- VOTE SELECT -->
+  <section class="screen" id="screen-vote">
+    <div class="panel">
+      <p class="pass-eyebrow" id="vote-eyebrow">Player 1, who is the imposter?</p>
+      <div class="vote-grid" id="vote-grid"></div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="screen" id="screen-results">
+    <div class="panel">
+      <h2 id="results-headline">Crew Wins!</h2>
+      <div class="tally-list" id="tally-list"></div>
+      <div class="reveal-box" id="reveal-box"></div>
+      <div class="results-actions">
+        <button class="btn btn-primary btn-lg" id="btn-play-again">Play Again</button>
+        <button class="btn btn-ghost" id="btn-new-setup">New Game</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEAL -->
+  <section class="screen" id="screen-steal">
+    <div class="panel center-panel">
+      <h2>Imposter's Last Chance</h2>
+      <p class="hint-text" id="steal-sub">Pass the phone to the imposter. They get one guess at the word.</p>
+      <input type="text" id="steal-input" placeholder="Type your guess..." autocomplete="off">
+      <button class="btn btn-primary btn-lg" id="btn-steal-reveal">Reveal Answer</button>
+      <div id="steal-answer" class="steal-answer"></div>
+      <div class="results-actions" id="steal-judge" style="display:none;">
+        <button class="btn btn-primary" id="btn-steal-correct">They got it &mdash; Imposter wins</button>
+        <button class="btn btn-ghost" id="btn-steal-wrong">Wrong &mdash; Crew wins</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+<script src="js/words.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
